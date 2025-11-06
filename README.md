@@ -284,7 +284,11 @@ class Buyer {
         this.phone = '';
         this.email = '';
     }
-    
+
+    /**
+     * Проверяет заполненны ли поля Покупателя. Возвращает массив ошибок или пустой массив
+     * @returns {{payment?: string, address?: string, phone?: string, email?: string}}
+     */
     public validate(): {
         payment?: string;
         address?: string;
