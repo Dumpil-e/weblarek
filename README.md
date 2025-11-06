@@ -98,3 +98,216 @@ Presenter - презентер содержит основную логику п
 `emit<T extends object>(event: string, data?: T): void` - инициализация события. При вызове события в метод передается название события и объект с данными, который будет использован как аргумент для вызова обработчика.  
 `trigger<T extends object>(event: string, context?: Partial<T>): (data: T) => void` - возвращает функцию, при вызове которой инициализируется требуемое в параметрах событие с передачей в него данных из второго параметра.
 
+# Данные
+## Интерфейсы
+ Описание товара:
+```js
+interface IProduct {
+    id: string; // уникальный идентификатор
+    title: string; // имя товара
+    description: string; // Описание товара
+    image: string; // путь к изображению товара
+    category: string; // категория товара
+    price: number | null; // цена товара (может быть не указана)
+}
+```
+Описание покупателя:
+```js
+interface IBuyer {
+    email: string; // почта покупателя
+    phone: string; // телефон покупателя
+    payment: TPayment; // способ оплаты с формы
+    address: string; // адрес заказа
+}
+```
+
+## Модели данных
+
+### Класс каталога товаров
+```js
+class productCatalog {
+    private products: IProduct[] = [];
+    private selectedProduct: IProduct;
+
+    /**
+     * Сохраняет массив товаров, полученный с сервера
+     * @param products - массив объектов IProduct
+     */
+    public setProducts(products: IProduct[]): void {
+        this.products = products;
+    }
+
+    /**
+     * Возвращает массив товаров из модели
+     * @return массив IProduct[]
+     */
+    public getProducts(): IProduct[] {
+        return this.products;
+    }
+    
+    /**
+     * Возвращает товар по его ID
+     * @return IProduct
+     */
+    public getProductById(id: string): IProduct {
+        return this.products.find(product => product.id === id);
+    }
+
+    /**
+     * Сохранение товара для его подробного отображения
+     * @return IProduct
+     */
+    public setSelectedProduct(product): void {
+        this.selectedProduct = product;
+    }
+
+    /**
+     * Возвращает выбранный товар
+     * @returns IProduct
+     */
+    public getSelectedProduct(): IProduct | null {
+        return this.selectedProduct;        
+    }
+}
+```
+
+### Класс корзины
+
+Отвечает за хранение и управление товарами для покупки
+```js
+class basket {
+    /**
+     * Массив товаров добавленных в корзину
+     * @type IProduct[]
+     */
+    private items: IProduct[] = [];
+
+    /**
+     * Возвращает массив товаров в корзине
+     * @returns IProduct[]
+     */
+    public getItems(): IProduct[] {
+        return this.items;
+    }
+
+    /**
+     * Добавляет товар в корзину
+     * @param prodict: IProduct
+     */
+    public addItem(product: IProduct): void {
+        this.items.push(prodict);
+    }
+
+    /**
+     * Удаляет товар из корзины полученный в параметре
+     * @param product: IProduct
+     */
+    public removeItem(product: IProduct): void {
+        this.items = this.items.filter(item => item.id !== product.id)
+    }
+
+    /**
+     * Удаляет все товары из корзины
+     */
+    public clear(): void {
+        this.items = [];
+    }
+
+    /**
+     * Возвращает сумму всех товаров в корзине
+     * @returns number
+     */
+    public getTotal(): number {
+        return this.items.reduce((sum, item) => sum + (item.price ?? 0), 0)
+    }
+    
+    /**
+     * Возвращает количество товаров в корзине
+     */
+    public getCount(): number {
+        return this.items.length;
+    }
+
+    /**
+     * Проверяет есть ли товар в корзине
+     * @param id
+     * @returns boolean
+     */
+    public conteins(id: string): boolean {
+        return this.items.some(item => item.id === id);
+    }    
+}
+```
+## Класс покупатель
+Хранит данные покупателя. Имеет методы валидации и заполнения полей
+```js
+class Buyer {
+    private payment: string = '';
+    private address: string = '';
+    private phone: string = '';
+    private email: string = '';
+
+    /**
+     * Заполняет поле покупателя
+     * @param field: string - имя поля
+     * @param value: sting - значение поля
+     */
+    public setField(field: 'payment' | 'address' | 'phone' | 'email', value: string) {
+        this[field] = value;        
+    }
+
+    /**
+     * Возвращает массив с данными покупателя
+     * @returns {payment: string, address: string, phone: string, email: string}
+     */
+    
+    public getData(): {
+        payment: string;
+        address: string;
+        phone: string;
+        email: string
+    } {
+        return {
+            payment: this.payment,
+            address: this.address,
+            phone: this.phone,
+            email: this.email            
+        }
+    }
+
+    /**
+     * Очищает данные покупателя
+     */
+    public clearData(): void {
+        this.payment = '';
+        this.address = '';
+        this.phone = '';
+        this.email = '';
+    }
+    
+    public validate(): {
+        payment?: string;
+        address?: string;
+        phone?: string;
+        email?: string;
+    } { const errors: {
+        payment?: string;
+        address?: string;
+        phone?: string;
+        email?: string;            
+        } = {};
+
+        if (!this.payment) errors.payment = 'Не выбран вид оплаты';
+        if (!this.address) errors.address = 'Укажите адрес';
+        if (!this.phone) errors.phone = 'Укажите телефон';
+        if (!this.email) errors.email = 'Укажите емэйл';
+
+        return errors;
+    }
+}
+```
+
+
+
+
+
