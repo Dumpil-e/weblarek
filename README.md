@@ -116,7 +116,7 @@ interface IProduct {
 interface IBuyer {
     email: string; // почта покупателя
     phone: string; // телефон покупателя
-    payment: TPayment; // способ оплаты с формы
+    payment: 'card' | 'cash' | ''; // способ оплаты с формы
     address: string; // адрес заказа
 }
 ```
@@ -125,9 +125,9 @@ interface IBuyer {
 
 ### Класс каталога товаров
 ```js
-class productCatalog {
+class ProductCatalog {
     private products: IProduct[] = [];
-    private selectedProduct: IProduct;
+    private selectedProduct: IProduct | null = null;
 
     /**
      * Сохраняет массив товаров, полученный с сервера
@@ -149,7 +149,7 @@ class productCatalog {
      * Возвращает товар по его ID
      * @return IProduct
      */
-    public getProductById(id: string): IProduct {
+    public getProductById(id: string): IProduct | undefined {
         return this.products.find(product => product.id === id);
     }
 
@@ -157,7 +157,7 @@ class productCatalog {
      * Сохранение товара для его подробного отображения
      * @return IProduct
      */
-    public setSelectedProduct(product): void {
+    public setSelectedProduct(product: IProduct): void {
         this.selectedProduct = product;
     }
 
@@ -175,7 +175,7 @@ class productCatalog {
 
 Отвечает за хранение и управление товарами для покупки
 ```js
-class basket {
+class Basket {
     /**
      * Массив товаров добавленных в корзину
      * @type IProduct[]
@@ -192,15 +192,15 @@ class basket {
 
     /**
      * Добавляет товар в корзину
-     * @param prodict: IProduct
+     * @param product {IProduct}
      */
     public addItem(product: IProduct): void {
-        this.items.push(prodict);
+        this.items.push(product);
     }
 
     /**
      * Удаляет товар из корзины полученный в параметре
-     * @param product: IProduct
+     * @param product {IProduct}
      */
     public removeItem(product: IProduct): void {
         this.items = this.items.filter(item => item.id !== product.id)
@@ -233,7 +233,7 @@ class basket {
      * @param id
      * @returns boolean
      */
-    public conteins(id: string): boolean {
+    public contains(id: string): boolean {
         return this.items.some(item => item.id === id);
     }    
 }
@@ -249,8 +249,8 @@ class Buyer {
 
     /**
      * Заполняет поле покупателя
-     * @param field: string - имя поля
-     * @param value: sting - значение поля
+     * @param field
+     * @param value
      */
     public setField(field: 'payment' | 'address' | 'phone' | 'email', value: string) {
         this[field] = value;        
@@ -286,7 +286,7 @@ class Buyer {
     }
 
     /**
-     * Проверяет заполненны ли поля Покупателя. Возвращает массив ошибок или пустой массив
+     * Проверяет заполненны ли поля Покупателя. Возвращает объект ошибок
      * @returns {{payment?: string, address?: string, phone?: string, email?: string}}
      */
     public validate(): {
@@ -311,6 +311,35 @@ class Buyer {
 }
 ```
 
+# Слой коммуникации
+
+```js
+class ServerCommunication {
+    private api: IApi;
+
+    constructor(api: IApi) {
+        this.api = api;
+    }
+
+    /**
+     * Получает массив товаров с сервера
+     * @returns Promise<IProduct[]>
+     */
+    public async loadProductList(): Promise<IProduct[]> {
+        const response = await this.api.get<IProductListResponse>('/product/');
+        return response.items;
+    }
+
+    /**
+     * Отправляет заказ на сервер
+     * @param order - объект заказа
+     * @returns Promise<void>
+     */
+    public async sendOrder(order: IOrderRequest): Promise<void> {
+        await this.api.post('/order/', order, 'POST');
+    }
+}
+```
 
 
 
