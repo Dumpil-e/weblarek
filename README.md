@@ -341,6 +341,187 @@ class ServerCommunication {
 }
 ```
 
+# Слой представления (View)
+
+## Родительский класс карточек BaseCard
+
+Интерфейс наследуется от IProduct и оставляет только данные присутствующие во всех карточках
+```ts
+export interface IBaseCardData extends Pick<IProduct, 'id' | 'title' | 'price'> {}
+```
 
 
+```ts
+/**
+ * Родительский класс для всех карточек.
+ * Общий функционал:
+ * - хранение id во внутреннем поле
+ * - отображение заголовка и цены
+ * - хранение id в dataset
+ */
+export abstract class BaseCard<T extends IBaseCardData> extends Component<T> {
+    protected titleEl: HTMLElement;
+    protected priceEl: HTMLElement;
 
+    render() {
+        
+    }
+
+    /** Установка id товара */
+    set id(value: string)
+
+    /** Установка названия товара */
+    set title(value: string)
+    
+    /** Установка цены*/
+    set price(value: number | null)
+
+}
+```
+## Карточка каталога (Список товаров)
+
+```ts
+/**
+ * Карточка товара в каталоге.
+ * Отображает картинку, название, цену, категорию.
+ * Генерирует событие выбора товара (по клику).
+ */
+export class CardListItem extends BaseCard {
+    private imageEl: HTMLImageElement;
+    private categoryEl: HTMLElement;
+
+    /** Утсанавливает изображение товара*/
+    set image(src: string)
+
+    /** Установка категории товара*/
+    set category(value: string)
+
+    render() {
+        return this.conteiner;
+    }
+```
+
+## Карточка товара внутри модального окна (детальное отображение)
+
+```ts
+/**
+ * Карточка товара в модальном окне.
+ * Отображает картинку, описание, кнопку действия.
+ * Генерирует событие при клике удалить или купить.
+ */
+export class CardDetail extends BaseCard {
+    private actionBtn: HTMLButtonElement;
+    private imageEl: HTMLImageElement;
+    private categoryEl: HTMLElement;
+    private textEl: HTMLElement;
+}
+```
+
+## Карточка товара внутри корзины
+
+```ts
+/*
+* Генерируте событи удаления товара из корзины
+* cart:item:remove
+* */
+export class CardCartItem extends BaseCard {
+    private removeBtn: HTMLButtonElement;
+    private indexEl: HTMLElement | null;
+}
+```
+
+## Построение списка карточек в каталоге
+
+```ts
+/**
+ * Представление каталога товаров.
+ * Отвечает за рендер списка карточек.
+ */
+export class CatalogView extends Component<IProduct[]>
+```
+
+## Класс модального окна
+
+```ts
+/** Имеет события открытия и закрытия*/
+export class ModalView extends Component<IModalData> {
+    private content: HTMLElement;
+    private closeBtn: HTMLButtonElement;
+}
+```
+
+## Классы форм заказа 
+
+```ts
+/* Открыти формы заполнения почты и телефона. События передачи данных и валидация* /
+export class ContactsFormView extends Component<IOrderFormData> {
+    private emailInput: HTMLInputElement;
+    private phoneInput: HTMLInputElement;
+    private submitBtn: HTMLButtonElement;
+    private errorsEl: HTMLElement;
+
+    private email: string = '';
+    private phone: string = '';
+}
+```
+
+```ts
+/* Открывает форму ввода адреса и выбора оплаты. Выбор оплаты и адреса, событие открытия следующей формы и валидация. */
+export class OrderFormView extends Component<IPaymentFormData> {
+    private cardBtn: HTMLButtonElement;
+    private cashBtn: HTMLButtonElement;
+    private addressInput: HTMLInputElement;
+    private submitBtn: HTMLButtonElement;
+    private errorsEl: HTMLElement;
+
+    private payment: string = '';
+    private address: string = '';
+```
+
+```ts
+/* форма подтвержения заказа. Событие закрытия*/
+export class SuccessView extends Component<ISuccessData> {
+    private titleEl: HTMLElement;
+    private descriptionEl: HTMLElement;
+    private closeBtn: HTMLButtonElement;
+```
+
+# Презентер
+
+
+```ts
+/* Главный презентер приложения.
+   Управляет логикой работы страницы, связывает модели и представления.
+   Обрабатывает все события, генерируемые моделями и вью:
+
+   События от представлений:
+   - catalog:item:select — выбор карточки товара для просмотра;
+   - detail:buy — покупка товара из модалки;
+   - detail:remove — удаление товара из корзины из модалки;
+   - cart:item:remove — удаление товара из корзины в списке корзины;
+   - cart:checkout — нажатие кнопки оформления заказа в корзине;
+   - order:payment — выбор способа оплаты;
+   - order:address — ввод адреса доставки;
+   - order:next — переход ко второй форме (валидация и открытие формы контактов);
+   - contacts:email — ввод email;
+   - contacts:phone — ввод телефона;
+   - contacts:submit — отправка формы контактов (валидация и открытие success-экрана);
+   - success:close — закрытие окна успешного заказа;
+   - click по .header__basket — открытие корзины.
+
+*/
+export class AppPresenter {
+    private catalog = new ProductCatalog();
+    private basket = new Basket();
+    private buyer = new Buyer();
+
+    private catalogView: CatalogView;
+    private cartView: CartView;
+    private modal = new ModalView();
+
+    private detailTemplate: HTMLTemplateElement;
+    private orderForm: OrderFormView;
+    private contactsForm: ContactsFormView;
+    private successView: SuccessView;
+}
+```
