@@ -1,4 +1,5 @@
-import { IProduct } from '../../types'
+import { IProduct } from '../../types';
+import { emit } from '../../utils/events';
 
 export class ProductCatalog {
     private products: IProduct[] = [];
@@ -6,10 +7,12 @@ export class ProductCatalog {
 
     /**
      * Сохраняет массив товаров, полученный с сервера
+     * и эмитит событие catalog:changed
      * @param products - массив объектов IProduct
      */
     public setProducts(products: IProduct[]): void {
         this.products = products;
+        emit('catalog:changed', { products: this.products });
     }
 
     /**
@@ -30,10 +33,12 @@ export class ProductCatalog {
 
     /**
      * Сохранение товара для его подробного отображения
+     * и эмит события catalog:selected
      * @return IProduct
      */
     public setSelectedProduct(product: IProduct): void {
         this.selectedProduct = product;
+        emit('catalog:selected', { product });
     }
 
     /**

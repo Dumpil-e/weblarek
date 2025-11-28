@@ -98,430 +98,327 @@ Presenter - презентер содержит основную логику п
 `emit<T extends object>(event: string, data?: T): void` - инициализация события. При вызове события в метод передается название события и объект с данными, который будет использован как аргумент для вызова обработчика.  
 `trigger<T extends object>(event: string, context?: Partial<T>): (data: T) => void` - возвращает функцию, при вызове которой инициализируется требуемое в параметрах событие с передачей в него данных из второго параметра.
 
-# Данные
-## Интерфейсы
- Описание товара:
-```js
-interface IProduct {
-    id: string; // уникальный идентификатор
-    title: string; // имя товара
-    description: string; // Описание товара
-    image: string; // путь к изображению товара
-    category: string; // категория товара
-    price: number | null; // цена товара (может быть не указана)
-}
-```
-Описание покупателя:
-```js
-interface IBuyer {
-    email: string; // почта покупателя
-    phone: string; // телефон покупателя
-    payment: 'card' | 'cash' | ''; // способ оплаты с формы
-    address: string; // адрес заказа
-}
-```
+# Модели данных
+## Класс ProductCatalog
+Отвечает за хранение и выбор товаров каталога.
 
-## Модели данных
+Поля:
+products: IProduct[] — массив товаров
 
-### Класс каталога товаров
-```js
-class ProductCatalog {
-    private products: IProduct[] = [];
-    private selectedProduct: IProduct | null = null;
+selectedProduct: IProduct | null — выбранный товар
 
-    /**
-     * Сохраняет массив товаров, полученный с сервера
-     * @param products - массив объектов IProduct
-     */
-    public setProducts(products: IProduct[]): void {
-        this.products = products;
-    }
+Методы:
+setProducts(products: IProduct[]) — сохраняет массив товаров и эмитит событие catalog:changed
 
-    /**
-     * Возвращает массив товаров из модели
-     * @return массив IProduct[]
-     */
-    public getProducts(): IProduct[] {
-        return this.products;
-    }
-    
-    /**
-     * Возвращает товар по его ID
-     * @return IProduct
-     */
-    public getProductById(id: string): IProduct | undefined {
-        return this.products.find(product => product.id === id);
-    }
+getProducts() — возвращает список товаров
 
-    /**
-     * Сохранение товара для его подробного отображения
-     * @return IProduct
-     */
-    public setSelectedProduct(product: IProduct): void {
-        this.selectedProduct = product;
-    }
+getProductById(id: string) — ищет товар по ID
 
-    /**
-     * Возвращает выбранный товар
-     * @returns IProduct
-     */
-    public getSelectedProduct(): IProduct | null {
-        return this.selectedProduct;        
-    }
-}
-```
+setSelectedProduct(product: IProduct) — сохраняет выбранный товар и эмитит событие catalog:selected
 
-### Класс корзины
+getSelectedProduct() — возвращает выбранный товар
 
-Отвечает за хранение и управление товарами для покупки
-```js
-class Basket {
-    /**
-     * Массив товаров добавленных в корзину
-     * @type IProduct[]
-     */
-    private items: IProduct[] = [];
+## Класс Basket
+Отвечает за корзину покупок.
 
-    /**
-     * Возвращает массив товаров в корзине
-     * @returns IProduct[]
-     */
-    public getItems(): IProduct[] {
-        return this.items;
-    }
+Поля:
+items: IProduct[] — список товаров в корзине
 
-    /**
-     * Добавляет товар в корзину
-     * @param product {IProduct}
-     */
-    public addItem(product: IProduct): void {
-        this.items.push(product);
-    }
+Методы:
+getItems() — возвращает товары в корзине
 
-    /**
-     * Удаляет товар из корзины полученный в параметре
-     * @param product {IProduct}
-     */
-    public removeItem(product: IProduct): void {
-        this.items = this.items.filter(item => item.id !== product.id)
-    }
+addItem(product: IProduct) — добавляет товар и вызывает событие изменения
 
-    /**
-     * Удаляет все товары из корзины
-     */
-    public clear(): void {
-        this.items = [];
-    }
+removeItem(product: IProduct) — удаляет товар и вызывает событие изменения
 
-    /**
-     * Возвращает сумму всех товаров в корзине
-     * @returns number
-     */
-    public getTotal(): number {
-        return this.items.reduce((sum, item) => sum + (item.price ?? 0), 0)
-    }
-    
-    /**
-     * Возвращает количество товаров в корзине
-     */
-    public getCount(): number {
-        return this.items.length;
-    }
+clear() — очищает корзину и вызывает событие изменения
 
-    /**
-     * Проверяет есть ли товар в корзине
-     * @param id
-     * @returns boolean
-     */
-    public contains(id: string): boolean {
-        return this.items.some(item => item.id === id);
-    }    
-}
-```
-## Класс покупатель
-Хранит данные покупателя. Имеет методы валидации и заполнения полей
-```js
-class Buyer {
-    private payment: string = '';
-    private address: string = '';
-    private phone: string = '';
-    private email: string = '';
+getTotal() — считает общую сумму
 
-    /**
-     * Заполняет поле покупателя
-     * @param field
-     * @param value
-     */
-    public setField(field: 'payment' | 'address' | 'phone' | 'email', value: string) {
-        this[field] = value;        
-    }
+getCount() — возвращает количество товаров
 
-    /**
-     * Возвращает массив с данными покупателя
-     * @returns {payment: string, address: string, phone: string, email: string}
-     */
-    
-    public getData(): {
-        payment: string;
-        address: string;
-        phone: string;
-        email: string
-    } {
-        return {
-            payment: this.payment,
-            address: this.address,
-            phone: this.phone,
-            email: this.email            
-        }
-    }
+contains(id: string) — проверяет наличие товара
 
-    /**
-     * Очищает данные покупателя
-     */
-    public clearData(): void {
-        this.payment = '';
-        this.address = '';
-        this.phone = '';
-        this.email = '';
-    }
+emitChanged() — приватный метод, генерирует событие basket:changed
 
-    /**
-     * Проверяет заполненны ли поля Покупателя. Возвращает объект ошибок
-     * @returns {{payment?: string, address?: string, phone?: string, email?: string}}
-     */
-    public validate(): {
-        payment?: string;
-        address?: string;
-        phone?: string;
-        email?: string;
-    } { const errors: {
-        payment?: string;
-        address?: string;
-        phone?: string;
-        email?: string;            
-        } = {};
+## Класс Buyer
+Хранит данные покупателя.
 
-        if (!this.payment) errors.payment = 'Не выбран вид оплаты';
-        if (!this.address) errors.address = 'Укажите адрес';
-        if (!this.phone) errors.phone = 'Укажите телефон';
-        if (!this.email) errors.email = 'Укажите емэйл';
+Поля:
+payment: string — способ оплаты
 
-        return errors;
-    }
-}
-```
+address: string — адрес доставки
+
+phone: string — телефон
+
+email: string — почта
+
+Методы:
+setField(field, value) — заполняет поле, валидирует и эмитит событие buyer:changed
+
+getData() — возвращает объект с данными покупателя
+
+clearData() — очищает все поля и эмитит событие buyer:changed
+
+validate() — проверяет заполненность и возвращает объект ошибок
 
 # Слой коммуникации
+## Класс ServerCommunication
+Отвечает за работу с API.
 
-```js
-class ServerCommunication {
-    private api: IApi;
+Поля:
+api: IApi — объект API
 
-    constructor(api: IApi) {
-        this.api = api;
-    }
+Методы:
+loadProductList() — загружает список товаров
 
-    /**
-     * Получает массив товаров с сервера
-     * @returns Promise<IProduct[]>
-     */
-    public async loadProductList(): Promise<IProduct[]> {
-        const response = await this.api.get<IProductListResponse>('/product/');
-        return response.items;
-    }
-
-    /**
-     * Отправляет заказ на сервер
-     * @param order - объект заказа
-     * @returns Promise<void>
-     */
-    public async sendOrder(order: IOrderRequest): Promise<void> {
-        await this.api.post('/order/', order, 'POST');
-    }
-}
-```
+sendOrder(order: IOrderRequest) — отправляет заказ
 
 # Слой представления (View)
+## Класс BaseCard
+Базовый класс карточек.
 
-## Родительский класс карточек BaseCard
+Поля:
+titleEl: HTMLElement — элемент заголовка
 
-Интерфейс наследуется от IProduct и оставляет только данные присутствующие во всех карточках
-```ts
-export interface IBaseCardData extends Pick<IProduct, 'id' | 'title' | 'price'> {}
-```
+priceEl: HTMLElement — элемент цены
 
+Методы:
+render() — рендер карточки
 
-```ts
-/**
- * Родительский класс для всех карточек.
- * Общий функционал:
- * - хранение id во внутреннем поле
- * - отображение заголовка и цены
- * - хранение id в dataset
- */
-export abstract class BaseCard<T extends IBaseCardData> extends Component<T> {
-    protected titleEl: HTMLElement;
-    protected priceEl: HTMLElement;
+id (setter) — установка ID
 
-    render() {
-        
-    }
+title (setter) — установка названия
 
-    /** Установка id товара */
-    set id(value: string)
+price (setter) — установка цены
 
-    /** Установка названия товара */
-    set title(value: string)
-    
-    /** Установка цены*/
-    set price(value: number | null)
+## Класс CardListItem
+Карточка товара в каталоге.
 
-}
-```
-## Карточка каталога (Список товаров)
+Поля:
+imageEl: HTMLImageElement — картинка
 
-```ts
-/**
- * Карточка товара в каталоге.
- * Отображает картинку, название, цену, категорию.
- * Генерирует событие выбора товара (по клику).
- */
-export class CardListItem extends BaseCard {
-    private imageEl: HTMLImageElement;
-    private categoryEl: HTMLElement;
+categoryEl: HTMLElement — категория
 
-    /** Утсанавливает изображение товара*/
-    set image(src: string)
+Методы:
+image(src: string) — установка изображения
 
-    /** Установка категории товара*/
-    set category(value: string)
+category(value: string) — установка категории
 
-    render() {
-        return this.conteiner;
-    }
-```
+render() — возвращает контейнер
 
-## Карточка товара внутри модального окна (детальное отображение)
+## Класс CardDetail
+Карточка товара в модальном окне.
 
-```ts
-/**
- * Карточка товара в модальном окне.
- * Отображает картинку, описание, кнопку действия.
- * Генерирует событие при клике удалить или купить.
- */
-export class CardDetail extends BaseCard {
-    private actionBtn: HTMLButtonElement;
-    private imageEl: HTMLImageElement;
-    private categoryEl: HTMLElement;
-    private textEl: HTMLElement;
-}
-```
+Поля:
+actionBtn: HTMLButtonElement — кнопка действия
 
-## Карточка товара внутри корзины
+imageEl: HTMLImageElement — картинка
 
-```ts
-/*
-* Генерируте событи удаления товара из корзины
-* cart:item:remove
-* */
-export class CardCartItem extends BaseCard {
-    private removeBtn: HTMLButtonElement;
-    private indexEl: HTMLElement | null;
-}
-```
+categoryEl: HTMLElement — категория
 
-## Построение списка карточек в каталоге
+textEl: HTMLElement — описание
 
-```ts
-/**
- * Представление каталога товаров.
- * Отвечает за рендер списка карточек.
- */
-export class CatalogView extends Component<IProduct[]>
-```
+## Класс CardCartItem
+Карточка товара в корзине.
 
-## Класс модального окна
+Поля:
+removeBtn: HTMLButtonElement — кнопка удаления
 
-```ts
-/** Имеет события открытия и закрытия*/
-export class ModalView extends Component<IModalData> {
-    private content: HTMLElement;
-    private closeBtn: HTMLButtonElement;
-}
-```
+indexEl: HTMLElement | null — индекс
 
-## Классы форм заказа 
+## Класс CatalogView
+Представление каталога товаров.
 
-```ts
-/* Открыти формы заполнения почты и телефона. События передачи данных и валидация* /
-export class ContactsFormView extends Component<IOrderFormData> {
-    private emailInput: HTMLInputElement;
-    private phoneInput: HTMLInputElement;
-    private submitBtn: HTMLButtonElement;
-    private errorsEl: HTMLElement;
+Поля:
+container: HTMLElement — корневой элемент
 
-    private email: string = '';
-    private phone: string = '';
-}
-```
+Методы:
+constructor(root: HTMLElement) — принимает корневой элемент и вызывает базовый конструктор
 
-```ts
-/* Открывает форму ввода адреса и выбора оплаты. Выбор оплаты и адреса, событие открытия следующей формы и валидация. */
-export class OrderFormView extends Component<IPaymentFormData> {
-    private cardBtn: HTMLButtonElement;
-    private cashBtn: HTMLButtonElement;
-    private addressInput: HTMLInputElement;
-    private submitBtn: HTMLButtonElement;
-    private errorsEl: HTMLElement;
+render(nodes: HTMLElement[]) — принимает готовые узлы карточек, вставляет их в контейнер и возвращает контейнер
 
-    private payment: string = '';
-    private address: string = '';
-```
+## Класс ModalView
+Модальное окно.
 
-```ts
-/* форма подтвержения заказа. Событие закрытия*/
-export class SuccessView extends Component<ISuccessData> {
-    private titleEl: HTMLElement;
-    private descriptionEl: HTMLElement;
-    private closeBtn: HTMLButtonElement;
-```
+Поля:
+content: HTMLElement — содержимое
 
-# Презентер
+closeBtn: HTMLButtonElement — кнопка закрытия
 
+## Класс ContactsFormView
+Форма контактов.
 
-```ts
-/* Главный презентер приложения.
-   Управляет логикой работы страницы, связывает модели и представления.
-   Обрабатывает все события, генерируемые моделями и вью:
+Поля:
+emailInput: HTMLInputElement — поле ввода email
 
-   События от представлений:
-   - catalog:item:select — выбор карточки товара для просмотра;
-   - detail:buy — покупка товара из модалки;
-   - detail:remove — удаление товара из корзины из модалки;
-   - cart:item:remove — удаление товара из корзины в списке корзины;
-   - cart:checkout — нажатие кнопки оформления заказа в корзине;
-   - order:payment — выбор способа оплаты;
-   - order:address — ввод адреса доставки;
-   - order:next — переход ко второй форме (валидация и открытие формы контактов);
-   - contacts:email — ввод email;
-   - contacts:phone — ввод телефона;
-   - contacts:submit — отправка формы контактов (валидация и открытие success-экрана);
-   - success:close — закрытие окна успешного заказа;
-   - click по .header__basket — открытие корзины.
+phoneInput: HTMLInputElement — поле ввода телефона
 
-*/
-export class AppPresenter {
-    private catalog = new ProductCatalog();
-    private basket = new Basket();
-    private buyer = new Buyer();
+submitBtn: HTMLButtonElement — кнопка отправки формы
 
-    private catalogView: CatalogView;
-    private cartView: CartView;
-    private modal = new ModalView();
+errorsEl: HTMLElement — элемент для отображения ошибок
 
-    private detailTemplate: HTMLTemplateElement;
-    private orderForm: OrderFormView;
-    private contactsForm: ContactsFormView;
-    private successView: SuccessView;
-}
-```
+Методы:
+constructor(template: HTMLTemplateElement) — клонирует шаблон, инициализирует элементы формы и навешивает обработчики событий:
+
+contacts:email при вводе email
+
+contacts:phone при вводе телефона
+
+contacts:submit при отправке формы
+
+errors (setter) — отображает ошибки и блокирует кнопку отправки при их наличии
+
+clear() — очищает поля формы и сбрасывает ошибки
+
+## Класс OrderFormView
+Форма заказа.
+
+Поля:
+cardBtn: HTMLButtonElement — выбор оплаты картой
+
+cashBtn: HTMLButtonElement — выбор оплаты наличными
+
+addressInput: HTMLInputElement — ввод адреса
+
+submitBtn: HTMLButtonElement
+
+errorsEl: HTMLElement
+
+payment: string
+
+address: string
+
+Класс SuccessView
+Экран успешного заказа.
+
+Поля:
+titleEl: HTMLElement — заголовок
+
+descriptionEl: HTMLElement — описание
+
+closeBtn: HTMLButtonElement — кнопка закрытия
+
+## Класс CartView
+Представление корзины.
+
+Поля:
+listEl: HTMLElement — список товаров
+
+totalEl: HTMLElement — элемент для отображения суммы
+
+checkoutBtn: HTMLButtonElement — кнопка оформления заказа
+
+Методы:
+constructor(template: HTMLTemplateElement) — инициализация, навешивает обработчик на кнопку оформления заказа и эмитит событие cart:checkout
+
+items (setter) — принимает готовую разметку списка покупок, обновляет список и состояние кнопки
+
+total (setter) — обновляет стоимость
+
+canCheckout (setter) — включает/отключает кнопку оформления заказа
+
+render() — возвращает контейнер
+
+## Класс HeaderView
+Представление шапки сайта.
+
+Поля:
+basketBtn: HTMLButtonElement — кнопка корзины
+
+basketCounter: HTMLElement — визуальный счетчик товаров в корзине
+
+Методы:
+constructor() — инициализирует элементы шапки, навешивает обработчик клика на кнопку корзины и эмитит событие cart:open
+
+setBasketCount(count: number) — обновляет визуальный счетчик корзины
+
+# Презентер приложения
+
+## Поля
+catalog: ProductCatalog — модель каталога товаров
+
+basket: Basket — модель корзины
+
+buyer: Buyer — модель покупателя
+
+catalogView: CatalogView — представление каталога
+
+cartView: CartView — представление корзины
+
+modal: ModalView — модальное окно
+
+headerView: HeaderView — представление шапки сайта
+
+detailTemplate: HTMLTemplateElement — шаблон карточки товара для модального окна
+
+orderForm: OrderFormView — форма заказа (шаг 1)
+
+contactsForm: ContactsFormView — форма контактов (шаг 2)
+
+successView: SuccessView — экран успешного заказа
+
+## Методы и логика
+### Вспомогательные функции
+updateBasketCounter(count: number) — обновляет визуальный счетчик корзины в шапке
+
+openDetail(id: string) — открывает модальное окно с деталями товара, формирует данные карточки и отображает кнопку действия (купить/удалить/недоступно)
+
+openCart() — открывает текущее состояние корзины в модальном окне
+
+### Подписки на события
+##### Каталог
+
+catalog:item:select — выбор товара для просмотра, вызывает openDetail
+
+catalog:changed — обновление списка товаров, рендер карточек в каталоге
+
+Карточка товара (детали)
+
+detail:buy — добавление товара в корзину, закрытие модалки
+
+detail:remove — удаление товара из корзины, обновление счетчика и закрытие модалки
+
+#### Корзина
+
+cart:item:remove — удаление товара из корзины через список, обновление счетчика и повторное открытие корзины
+
+cart:open — открытие корзины
+
+cart:checkout — открытие формы заказа (шаг 1) с текущими данными покупателя
+
+basket:changed — обновление списка карточек корзины, суммы и счетчика в шапке
+
+#### Форма заказа (шаг 1)
+
+order:payment — выбор способа оплаты, обновление модели покупателя
+
+order:address — ввод адреса доставки, обновление модели покупателя
+
+order:next — переход к форме контактов (шаг 2), открытие модалки с формой
+
+#### Форма контактов (шаг 2)
+
+contacts:email — ввод email, обновление модели покупателя
+
+contacts:phone — ввод телефона, обновление модели покупателя
+
+contacts:submit — отправка заказа:
+
+формирование объекта заказа IOrderRequest
+
+отправка на сервер через ServerCommunication
+
+открытие экрана успеха
+
+очистка данных покупателя и корзины
+
+обновление счетчика корзины
+
+### Покупатель
+
+buyer:changed — обновление ошибок в формах заказа и контактов
+
+### Экран успеха
+
+success:close — закрытие модального окна

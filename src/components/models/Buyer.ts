@@ -1,3 +1,5 @@
+import {emit} from "../../utils/events.ts";
+
 export class Buyer {
     private payment: string = '';
     private address: string = '';
@@ -8,9 +10,15 @@ export class Buyer {
      * Заполняет поле покупателя
      * @param field
      * @param value
+     * Эмитит событие обновления покупателя
      */
     public setField(field: 'payment' | 'address' | 'phone' | 'email', value: string) {
         this[field] = value;
+        const errors = this.validate();
+        emit('buyer:changed', {
+            data: this.getData(),
+            errors
+        });
     }
 
     /**
@@ -34,12 +42,17 @@ export class Buyer {
 
     /**
      * Очищает данные покупателя
+     * Этимит событие обновления покупателя
      */
     public clearData(): void {
         this.payment = '';
         this.address = '';
         this.phone = '';
         this.email = '';
+        emit('buyer:changed', {
+            data: this.getData(),
+            errors: this.validate()
+        });
     }
 
     /**

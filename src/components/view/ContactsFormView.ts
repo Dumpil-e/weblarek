@@ -3,14 +3,16 @@ import { Component } from '../base/Component';
 import { IOrderFormData } from '../../types/view-forms.ts';
 import { emit } from '../../utils/events';
 
+/**
+ * Представление формы контактов.
+ * Отвечает только за отображение полей и ошибок.
+ * Не выполняет валидацию — ошибки приходят от модели через презентер.
+ */
 export class ContactsFormView extends Component<IOrderFormData> {
     private emailInput: HTMLInputElement;
     private phoneInput: HTMLInputElement;
     private submitBtn: HTMLButtonElement;
     private errorsEl: HTMLElement;
-
-    private email: string = '';
-    private phone: string = '';
 
     constructor(template: HTMLTemplateElement) {
         const root = cloneTemplate<HTMLElement>(template);
@@ -22,15 +24,11 @@ export class ContactsFormView extends Component<IOrderFormData> {
         this.errorsEl = ensureElement<HTMLElement>('.form__errors', this.container);
 
         this.emailInput.addEventListener('input', () => {
-            this.email = this.emailInput.value;
-            emit('contacts:email', { email: this.email });
-            this.validate();
+            emit('contacts:email', { email: this.emailInput.value });
         });
 
         this.phoneInput.addEventListener('input', () => {
-            this.phone = this.phoneInput.value;
-            emit('contacts:phone', { phone: this.phone });
-            this.validate();
+            emit('contacts:phone', { phone: this.phoneInput.value });
         });
 
         this.container.addEventListener('submit', (e) => {
@@ -39,21 +37,13 @@ export class ContactsFormView extends Component<IOrderFormData> {
         });
     }
 
-    private validate() {
-        const errors: string[] = [];
-        if (!this.email) errors.push('Укажите email');
-        if (!this.phone) errors.push('Укажите телефон');
-        this.errors = errors;
-    }
-
+    // Метод для отображения ошибок, вызывается презентером
     set errors(errors: string[]) {
         this.errorsEl.textContent = errors.join(', ');
         this.submitBtn.disabled = errors.length > 0;
     }
 
     clear() {
-        this.email = '';
-        this.phone = '';
         this.emailInput.value = '';
         this.phoneInput.value = '';
         this.errors = [];

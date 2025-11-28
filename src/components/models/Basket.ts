@@ -1,4 +1,5 @@
 import { IProduct } from '../../types'
+import { emit } from "../../utils/events.ts";
 
 export class Basket {
     /**
@@ -21,6 +22,7 @@ export class Basket {
      */
     public addItem(product: IProduct): void {
         this.items.push(product);
+        this.emitChanged();
     }
 
     /**
@@ -28,7 +30,8 @@ export class Basket {
      * @param product {IProduct}
      */
     public removeItem(product: IProduct): void {
-        this.items = this.items.filter(item => item.id !== product.id)
+        this.items = this.items.filter(item => item.id !== product.id);
+        this.emitChanged();
     }
 
     /**
@@ -36,6 +39,7 @@ export class Basket {
      */
     public clear(): void {
         this.items = [];
+        this.emitChanged();
     }
 
     /**
@@ -60,5 +64,14 @@ export class Basket {
      */
     public contains(id: string): boolean {
         return this.items.some(item => item.id === id);
+    }
+
+    // Метод для эмита события изменения корзины
+    private emitChanged(): void {
+        emit('basket:changed', {
+            items: this.getItems(),
+            total: this.getTotal(),
+            count: this.getCount(),
+        });
     }
 }

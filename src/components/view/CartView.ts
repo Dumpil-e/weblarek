@@ -1,20 +1,17 @@
 import { cloneTemplate, ensureElement } from '../../utils/utils';
 import { Component } from '../base/Component';
 import { ICardCartData } from '../../types/view-cards';
-import { CardCartItem } from './CardCartItem';
 import { emit } from '../../utils/events';
 
 export class CartView extends Component<{ items: ICardCartData[]; total: number }> {
     private listEl: HTMLElement;
     private totalEl: HTMLElement;
     private checkoutBtn: HTMLButtonElement;
-    private itemTemplate: HTMLTemplateElement;
 
-    constructor(template: HTMLTemplateElement, itemTemplate: HTMLTemplateElement) {
+    constructor(template: HTMLTemplateElement) {
         const root = cloneTemplate<HTMLElement>(template);
         super(root);
 
-        this.itemTemplate = itemTemplate;
         this.listEl = ensureElement<HTMLElement>('.basket__list', this.container);
         this.totalEl = ensureElement<HTMLElement>('.basket__price', this.container);
         this.checkoutBtn = ensureElement<HTMLButtonElement>('.basket__button', this.container);
@@ -25,6 +22,13 @@ export class CartView extends Component<{ items: ICardCartData[]; total: number 
         });
     }
 
+    //принимает готовую разметку списка покупок
+    set items(nodes: HTMLElement[]) {
+        this.listEl.replaceChildren(...nodes);
+        this.canCheckout = nodes.length > 0;
+    }
+
+    //обновляет стоимость
     set total(value: number) {
         this.totalEl.textContent = `${value} синапсов`;
     }
@@ -33,16 +37,8 @@ export class CartView extends Component<{ items: ICardCartData[]; total: number 
         this.checkoutBtn.disabled = !value;
     }
 
-    render(data: { items: ICardCartData[]; total: number }): HTMLElement {
-        const nodes = data.items.map((item) => {
-            const card = new CardCartItem(this.itemTemplate);
-            return card.render(item);
-        });
-
-        this.listEl.replaceChildren(...nodes);
-        this.total = data.total;
-        this.canCheckout = data.items.length > 0;
-
+    //Метод render теперь только возвращает контейнер
+    render(): HTMLElement {
         return this.container;
     }
 }

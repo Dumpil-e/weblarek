@@ -26,7 +26,7 @@ export interface IProductListResponse {
     items: IProduct[];
 }
 
-export interface IOrderRequest extends Pick<IBuyer, 'email' | 'phone' | 'address' | 'payment'> {
+export interface IOrderRequest extends IBuyer {
     total: number;
     items: Array<IProduct['id']>;
 }
