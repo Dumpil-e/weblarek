@@ -1,7 +1,8 @@
 import { cloneTemplate, ensureElement } from '../../utils/utils';
 import { BaseCard } from './BaseCard';
 import { ICardCartData } from '../../types/view-cards';
-import { emit } from '../../utils/events';
+import {events} from "../../utils/events.ts";
+
 
 export class CardCartItem extends BaseCard {
     private removeBtn: HTMLButtonElement;
@@ -16,7 +17,8 @@ export class CardCartItem extends BaseCard {
 
         this.removeBtn.addEventListener('click', () => {
             const id = this.container.dataset.id!;
-            emit('cart:item:remove', { id });
+            // emit('cart:item:remove', { id }); // старая версия
+            events.emit('cart:item:remove', { id }); // новая версия
         });
     }
 

@@ -1,8 +1,12 @@
 import { cloneTemplate, ensureElement } from '../../utils/utils';
 import { BaseCard } from './BaseCard';
 import { ICardDetailData } from '../../types/view-cards';
-import { emit } from '../../utils/events';
+
 import { CDN_URL, categoryMap } from '../../utils/constants';
+import {events} from "../../utils/events.ts";
+
+// создаём локальный экземпляр эмитера
+
 
 export class CardDetail extends BaseCard {
     private actionBtn: HTMLButtonElement;
@@ -22,8 +26,14 @@ export class CardDetail extends BaseCard {
         this.actionBtn.addEventListener('click', () => {
             const id = this.container.dataset.id!;
             const label = this.actionBtn.textContent?.trim();
-            if (label === 'Купить') emit('detail:buy', { id });
-            else if (label === 'Удалить из корзины') emit('detail:remove', { id });
+            // if (label === 'Купить') emit('detail:buy', { id }); // старая версия
+            // else if (label === 'Удалить из корзины') emit('detail:remove', { id }); // старая версия
+
+            if (label === 'Купить') {
+                events.emit('detail:buy', { id }); // новая версия
+            } else if (label === 'Удалить из корзины') {
+                events.emit('detail:remove', { id }); // новая версия
+            }
         });
     }
 

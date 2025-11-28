@@ -1,7 +1,8 @@
 import { cloneTemplate, ensureElement } from '../../utils/utils';
 import { Component } from '../base/Component';
 import { IOrderFormData } from '../../types/view-forms.ts';
-import { emit } from '../../utils/events';
+import {events} from "../../utils/events.ts";
+
 
 /**
  * Представление формы контактов.
@@ -24,16 +25,19 @@ export class ContactsFormView extends Component<IOrderFormData> {
         this.errorsEl = ensureElement<HTMLElement>('.form__errors', this.container);
 
         this.emailInput.addEventListener('input', () => {
-            emit('contacts:email', { email: this.emailInput.value });
+            // emit('contacts:email', { email: this.emailInput.value }); // старая версия
+            events.emit('contacts:email', { email: this.emailInput.value }); // новая версия
         });
 
         this.phoneInput.addEventListener('input', () => {
-            emit('contacts:phone', { phone: this.phoneInput.value });
+            // emit('contacts:phone', { phone: this.phoneInput.value }); // старая версия
+            events.emit('contacts:phone', { phone: this.phoneInput.value }); // новая версия
         });
 
         this.container.addEventListener('submit', (e) => {
             e.preventDefault();
-            emit('contacts:submit');
+            // emit('contacts:submit'); // старая версия
+            events.emit('contacts:submit'); // новая версия
         });
     }
 

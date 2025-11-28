@@ -1,7 +1,8 @@
 import { cloneTemplate, ensureElement } from '../../utils/utils';
 import { Component } from '../base/Component';
 import { ISuccessData } from '../../types/view-forms.ts';
-import { emit } from '../../utils/events';
+import {events} from "../../utils/events.ts";
+
 
 export class SuccessView extends Component<ISuccessData> {
     private titleEl: HTMLElement;
@@ -16,7 +17,10 @@ export class SuccessView extends Component<ISuccessData> {
         this.descriptionEl = ensureElement<HTMLElement>('.order-success__description', this.container);
         this.closeBtn = ensureElement<HTMLButtonElement>('.order-success__close', this.container);
 
-        this.closeBtn.addEventListener('click', () => emit('success:close'));
+        this.closeBtn.addEventListener('click', () => {
+            // emit('success:close'); // старая версия
+            events.emit('success:close'); // новая версия
+        });
     }
 
     render(data: ISuccessData): HTMLElement {

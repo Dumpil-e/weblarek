@@ -7,7 +7,6 @@ import { ServerCommunication } from "./components/models/ServerCommunication.ts"
 import { Api } from "./components/base/Api.ts";
 import { CatalogView } from './components/view/CatalogView';
 import { IOrderRequest, IProduct } from "./types";
-import { on } from "./utils/events.ts";
 import { ensureElement } from "./utils/utils.ts";
 import { CardDetail } from "./components/view/CardDetail.ts";
 import { ICardDetailData } from "./types/view-cards.ts";
@@ -19,6 +18,7 @@ import { SuccessView } from "./components/view/SuccessView.ts";
 import { CardCartItem } from "./components/view/CardCartItem.ts";
 import { CardListItem } from "./components/view/CardListItem.ts";
 import { HeaderView } from "./components/view/HeaderView.ts";
+import { events } from './utils/events.ts';
 
 /* Презентер — набор обработчиков событий и экземпляры моделей/вью */
 
@@ -49,6 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const contactsForm = new ContactsFormView(contactsTemplate);
     const successView = new SuccessView(successTemplate);
 
+    // создаём новый эмитер
+
     // функции презентера
     function updateBasketCounter(count: number) {
         headerView.setBasketCount(count);
@@ -75,20 +77,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function openCart() {
-        // только открываем текущее состояние корзины
         modal.open(cartView.render());
     }
 
-    // подписки на события
-    on('catalog:item:select', ({ id }) => openDetail(id));
-    on('detail:buy', ({ id }) => {
+    // подписки на события (новый эмитер)
+    events.on<{ id: string }>('catalog:item:select', ({ id }) => openDetail(id));
+
+    events.on<{ id: string }>('detail:buy', ({ id }) => {
         const product = catalog.getProductById(id);
         if (product) {
             basket.addItem(product);
             modal.close();
         }
     });
-    on('detail:remove', ({ id }) => {
+
+    events.on<{ id: string }>('detail:remove', ({ id }) => {
         const product = catalog.getProductById(id);
         if (product) {
             basket.removeItem(product);
@@ -96,7 +99,8 @@ document.addEventListener('DOMContentLoaded', () => {
             modal.close();
         }
     });
-    on('cart:item:remove', ({ id }) => {
+
+    events.on<{ id: string }>('cart:item:remove', ({ id }) => {
         const product = catalog.getProductById(id);
         if (product) {
             basket.removeItem(product);
@@ -106,25 +110,25 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // шаг 1: форма оплаты
-    on('order:payment', ({ payment }) => buyer.setField('payment', payment));
-    on('order:address', ({ address }) => buyer.setField('address', address));
+    events.on<{ payment: string }>('order:payment', ({ payment }) => buyer.setField('payment', payment));
+    events.on<{ address: string }>('order:address', ({ address }) => buyer.setField('address', address));
 
-    on('order:next', () => {
+    events.on('order:next', () => {
         modal.open(contactsForm.render(buyer.getData()));
     });
 
     // шаг 2: форма контактов
-    on('contacts:email', ({ email }) => buyer.setField('email', email));
-    on('contacts:phone', ({ phone }) => buyer.setField('phone', phone));
+    events.on<{ email: string }>('contacts:email', ({ email }) => buyer.setField('email', email));
+    events.on<{ phone: string }>('contacts:phone', ({ phone }) => buyer.setField('phone', phone));
 
-    // Событие изменение покупателя.
-    on('buyer:changed', ({ errors }) => {
+    // Событие изменение покупателя
+    events.on<{ errors: Record<string, string> }>('buyer:changed', ({ errors }) => {
         orderForm.errors = Object.values(errors);
         contactsForm.errors = Object.values(errors);
     });
 
     // Отправка формы и очистка полей моделей и форм
-    on('contacts:submit', async () => {
+    events.on('contacts:submit', async () => {
         const buyerData = buyer.getData();
         const order: IOrderRequest = {
             payment: buyerData.payment as 'card' | 'cash',
@@ -140,7 +144,6 @@ document.addEventListener('DOMContentLoaded', () => {
             buyer.clearData();
             basket.clear();
             updateBasketCounter(basket.getCount());
-            // добавляем очистку форм
             contactsForm.clear();
             orderForm.clear();
         } catch (error) {
@@ -148,10 +151,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    on('success:close', () => modal.close());
+    events.on('success:close', () => modal.close());
 
-    on('cart:open', () => openCart());
-    on('cart:checkout', () => {
+    events.on('cart:open', () => openCart());
+    events.on('cart:checkout', () => {
         const buyerData = buyer.getData();
         modal.open(orderForm.render({
             payment: buyerData.payment as '' | 'card' | 'cash' | undefined,
@@ -160,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // обработка события изменения каталога
-    on('catalog:changed', ({ products }) => {
+    events.on<{ products: IProduct[] }>('catalog:changed', ({ products }) => {
         const nodes = products.map((p: IProduct) => {
             const card = new CardListItem(catalogTemplate);
             return card.render({
@@ -174,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
         catalogView.render(nodes);
     });
 
-    on('basket:changed', ({ items, total, count }) => {
+    events.on<{ items: IProduct[], total: number, count: number }>('basket:changed', ({ items, total, count }) => {
         const nodes = items.map((p: IProduct, index: number) => {
             const card = new CardCartItem(cartItemTemplate);
             return card.render({

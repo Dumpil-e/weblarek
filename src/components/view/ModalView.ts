@@ -1,7 +1,8 @@
 import { ensureElement } from '../../utils/utils';
 import { Component } from '../base/Component';
-import { emit } from '../../utils/events';
 import { IModalData } from '../../types/view-cards';
+import {events} from "../../utils/events.ts";
+
 
 export class ModalView extends Component<IModalData> {
     private content: HTMLElement;
@@ -26,12 +27,14 @@ export class ModalView extends Component<IModalData> {
         this.content.replaceChildren(content);
         this.container.classList.add('modal_active');
         document.body.classList.add('modal-open');
-        emit('modal:open');
+        // emit('modal:open'); // старая версия
+        events.emit('modal:open'); // новая версия
     }
 
     close(): void {
         this.container.classList.remove('modal_active');
         document.body.classList.remove('modal-open');
-        emit('modal:close');
+        // emit('modal:close'); // старая версия
+        events.emit('modal:close'); // новая версия
     }
 }

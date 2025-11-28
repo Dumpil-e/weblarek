@@ -1,5 +1,6 @@
 import { IProduct } from '../../types';
-import { emit } from '../../utils/events';
+import {events} from "../../utils/events.ts";
+
 
 export class ProductCatalog {
     private products: IProduct[] = [];
@@ -12,7 +13,8 @@ export class ProductCatalog {
      */
     public setProducts(products: IProduct[]): void {
         this.products = products;
-        emit('catalog:changed', { products: this.products });
+        // emit('catalog:changed', { products: this.products }); // старая версия
+        events.emit('catalog:changed', { products: this.products }); // новая версия
     }
 
     /**
@@ -38,7 +40,8 @@ export class ProductCatalog {
      */
     public setSelectedProduct(product: IProduct): void {
         this.selectedProduct = product;
-        emit('catalog:selected', { product });
+        // emit('catalog:selected', { product }); // старая версия
+        events.emit('catalog:selected', { product }); // новая версия
     }
 
     /**

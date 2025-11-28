@@ -1,6 +1,6 @@
-// components/view/HeaderView.ts
 import { ensureElement } from '../../utils/utils';
-import { emit } from '../../utils/events';
+import {events} from "../../utils/events.ts";
+
 
 export class HeaderView {
     private basketBtn: HTMLButtonElement;
@@ -11,11 +11,11 @@ export class HeaderView {
         this.basketCounter = ensureElement<HTMLElement>('.header__basket-counter');
 
         this.basketBtn.addEventListener('click', () => {
-            emit('cart:open');
+            // emit('cart:open'); // старая версия
+            events.emit('cart:open'); // новая версия
         });
     }
 
-    // Обновляет визуальный счетчик корзины
     public setBasketCount(count: number): void {
         this.basketCounter.textContent = String(count);
     }

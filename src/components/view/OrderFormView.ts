@@ -1,7 +1,8 @@
 import { cloneTemplate, ensureElement } from '../../utils/utils';
 import { Component } from '../base/Component';
 import { IPaymentFormData } from '../../types/view-forms.ts';
-import { emit } from '../../utils/events';
+import {events} from "../../utils/events.ts";
+
 
 export class OrderFormView extends Component<IPaymentFormData> {
     private cardBtn: HTMLButtonElement;
@@ -27,13 +28,15 @@ export class OrderFormView extends Component<IPaymentFormData> {
         this.cashBtn.addEventListener('click', () => this.selectPayment('cash'));
         this.addressInput.addEventListener('input', () => {
             this.address = this.addressInput.value;
-            emit('order:address', { address: this.address });
+            // emit('order:address', { address: this.address }); // старая версия
+            events.emit('order:address', { address: this.address }); // новая версия
             this.validate();
         });
 
         this.container.addEventListener('submit', (e) => {
             e.preventDefault();
-            emit('order:next');
+            // emit('order:next'); // старая версия
+            events.emit('order:next'); // новая версия
         });
     }
 
@@ -48,7 +51,8 @@ export class OrderFormView extends Component<IPaymentFormData> {
         }
 
         this.payment = type;
-        emit('order:payment', { payment: type });
+        // emit('order:payment', { payment: type }); // старая версия
+        events.emit('order:payment', { payment: type }); // новая версия
         this.validate();
     }
 

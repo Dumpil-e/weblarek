@@ -2,7 +2,8 @@ import { cloneTemplate, ensureElement } from '../../utils/utils';
 import { BaseCard } from './BaseCard';
 import { ICardListData } from '../../types/view-cards';
 import { CDN_URL, categoryMap } from '../../utils/constants';
-import { emit } from '../../utils/events';
+import {events} from "../../utils/events.ts";
+
 
 export class CardListItem extends BaseCard {
     private imageEl: HTMLImageElement;
@@ -16,7 +17,8 @@ export class CardListItem extends BaseCard {
 
         this.container.addEventListener('click', () => {
             const id = this.container.dataset.id;
-            if (id) emit('catalog:item:select', { id });
+            // if (id) emit('catalog:item:select', { id }); // старая версия
+            if (id) events.emit('catalog:item:select', { id }); // новая версия
         });
     }
 

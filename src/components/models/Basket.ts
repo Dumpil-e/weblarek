@@ -1,5 +1,7 @@
 import { IProduct } from '../../types'
-import { emit } from "../../utils/events.ts";
+// import { emit } from "../../utils/events.ts"; // старая версия
+import {events} from "../../utils/events.ts"; // новая версия
+
 
 export class Basket {
     /**
@@ -68,10 +70,11 @@ export class Basket {
 
     // Метод для эмита события изменения корзины
     private emitChanged(): void {
-        emit('basket:changed', {
+        // emit('basket:changed', { items: this.getItems(), total: this.getTotal(), count: this.getCount() }); // старая версия
+        events.emit('basket:changed', {
             items: this.getItems(),
             total: this.getTotal(),
             count: this.getCount(),
-        });
+        }); // новая версия
     }
 }
